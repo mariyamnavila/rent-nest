@@ -1,0 +1,11 @@
+model Category {
+    id        String   @id @default(uuid())
+    name      String   @unique @db.VarChar(150)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    properties Property[]
+
+    @@map("categories")
+}
