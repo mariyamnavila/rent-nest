@@ -4,5 +4,6 @@ import { propertyController } from "./property.controller";
 const router = Router();
 
 router.get("/", propertyController.getAllProperties);
+router.get("/:id", propertyController.getPropertyById);
 
 export const propertyRouter = router;
