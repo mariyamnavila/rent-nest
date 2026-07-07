@@ -49,7 +49,56 @@ const updateUserStatus = async (id: string, status: UserStatus) => {
     return updatedUser;
 }
 
+const getAllProperties = async () => {
+    const properties = await prisma.property.findMany({
+        include: {
+            category: true,
+            landlord: {
+                omit: {
+                    password: true,
+                },
+            },
+            reviews: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    return properties;
+}
+
+const getAllRentals = async () => {
+    const rentals = await prisma.rentalRequest.findMany({
+        include: {
+            tenant: {
+                omit: {
+                    password: true,
+                },
+            },
+            property: {
+                include: {
+                    category: true,
+                    landlord: {
+                        omit: {
+                            password: true,
+                        },
+                    },
+                },
+            },
+            payments: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    return rentals;
+}
+
 export const adminService = {
     getAllUsers,
     updateUserStatus,
+    getAllProperties,
+    getAllRentals,
 }
