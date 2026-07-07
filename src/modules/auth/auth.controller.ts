@@ -65,8 +65,38 @@ const refreshToken = catchAsync(async (req: Request, res: Response, next: NextFu
     })
 })
 
+const getCurrentUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+
+    const result = await authService.getCurrentUser(userId as string);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Profile retrieved successfully",
+        data: result
+    })
+})
+
+const updateCurrentUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user?.id;
+    console.log(req.user?.id);
+    const payload = req.body;
+
+    const result = await authService.updateCurrentUser(userId as string, payload);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Profile updated successfully",
+        data: result
+    })
+})
+
 export const authController = {
     registerUser,
     loginUser,
     refreshToken,
+    getCurrentUser,
+    updateCurrentUser,
 }

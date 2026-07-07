@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
-import { ILoginUser, IRegisterUser } from "./auth.interface"
+import { ILoginUser, IRegisterUser, IUpdateUser } from "./auth.interface"
 import config from "../../config";
 import { UserRole } from "../../../generated/prisma/enums";
 import { jwtUtils } from "../../utils/jwt";
@@ -132,8 +132,61 @@ const refreshToken = async (refreshToken: string) => {
     return { accessToken };
 }
 
+const getCurrentUser = async (userId: string) => {
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            id: userId,
+        },
+        omit: {
+            password: true,
+        },
+    });
+
+    return user;
+}
+
+const updateCurrentUser = async (userId: string, payload: IUpdateUser) => {
+    const { name, phone, profileImage } = payload;
+
+    const existingUser = await prisma.user.findUnique({
+        where: {
+            id: userId
+        }
+    });
+
+    if (!existingUser) {
+        throw new Error("User not found.");
+    }
+
+    if (
+        name === undefined &&
+        phone === undefined &&
+        profileImage === undefined
+    ) {
+        throw new Error("Please provide at least one field to update.");
+    }
+
+    const user = await prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            name,
+            phone,
+            profileImage,
+        },
+        omit: {
+            password: true,
+        },
+    });
+
+    return user;
+}
+
 export const authService = {
     registerUserIntoDB,
     loginUser,
     refreshToken,
+    getCurrentUser,
+    updateCurrentUser,
 }
