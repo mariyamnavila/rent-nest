@@ -1,10 +1,10 @@
 import { prisma } from "../../lib/prisma";
-import { ICreatePropertyPayload } from "./landlord.interface";
+import { ICreatePropertyPayload, TUpdateProperty } from "./landlord.interface";
+import { RequestStatus } from "../../../generated/prisma/enums";
 
 const createProperty = async (payload: ICreatePropertyPayload, landlordId: string) => {
     const { categoryId } = payload;
 
-    // Verify category exists
     await prisma.category.findUniqueOrThrow({
         where: {
             id: categoryId,
@@ -32,7 +32,7 @@ const createProperty = async (payload: ICreatePropertyPayload, landlordId: strin
 const updateProperty = async (
     propertyId: string,
     landlordId: string,
-    payload: Partial<ICreatePropertyPayload>
+    payload: TUpdateProperty
 ) => {
     const property = await prisma.property.findUniqueOrThrow({
         where: {
@@ -119,9 +119,56 @@ const getLandlordRentalRequests = async (landlordId: string) => {
     return requests;
 }
 
+const updateRentalRequestStatus = async (
+    requestId: string,
+    landlordId: string,
+    status: RequestStatus
+) => {
+    if (status !== RequestStatus.APPROVED && status !== RequestStatus.REJECTED) {
+        throw new Error("Invalid status! Landlords can only set status to APPROVED or REJECTED.");
+    }
+
+    const rentalRequest = await prisma.rentalRequest.findUniqueOrThrow({
+        where: {
+            id: requestId,
+        },
+        include: {
+            property: true,
+        },
+    });
+
+    if (rentalRequest.property.landlordId !== landlordId) {
+        throw new Error("You do not have permission to moderate this rental request.");
+    }
+
+    if (rentalRequest.status !== RequestStatus.PENDING) {
+        throw new Error(`Cannot update a rental request that is already ${rentalRequest.status.toLowerCase()}.`);
+    }
+
+    const updatedRequest = await prisma.rentalRequest.update({
+        where: {
+            id: requestId,
+        },
+        data: {
+            status,
+        },
+        include: {
+            property: true,
+            tenant: {
+                omit: {
+                    password: true,
+                },
+            },
+        },
+    });
+
+    return updatedRequest;
+}
+
 export const landlordService = {
     createProperty,
     updateProperty,
     deleteProperty,
     getLandlordRentalRequests,
+    updateRentalRequestStatus,
 }
