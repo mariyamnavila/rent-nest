@@ -23,13 +23,13 @@ const loginUser = catchAsync(async (req: Request, res: Response, next: NextFunct
 
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "none",
         maxAge: 1000 * 60 * 60 * 24
     })
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: false,
+        secure: true,
         sameSite: "none",
         maxAge: 1000 * 60 * 60 * 24 * 7
 

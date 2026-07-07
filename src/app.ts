@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
 app.get("/", async (req: Request, res: Response) => {
-    res.send("Hello,  world")
+    res.send("RentNest server is running")
 })
 
 app.use("/api/auth", authRouter)

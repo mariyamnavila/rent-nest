@@ -5,3 +5,5 @@ node_modules
 
 assignment.md
 todo.md
+dist
+.vercel
