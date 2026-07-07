@@ -7,7 +7,7 @@ import httpStatus from "http-status";
 const createCategory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { name } = req.body;
 
-    const result = await categoryService.createCategory(name as string);
+    const result = await categoryService.createCategory(name);
 
     sendResponse(res, {
         success: true,
@@ -29,7 +29,36 @@ const getAllCategories = catchAsync(async (req: Request, res: Response, next: Ne
     })
 })
 
+const updateCategory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    const result = await categoryService.updateCategory(id as string, name);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Category updated successfully",
+        data: result
+    })
+})
+
+const deleteCategory = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    await categoryService.deleteCategory(id as string);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Category deleted successfully",
+        data: null
+    })
+})
+
 export const categoryController = {
     createCategory,
     getAllCategories,
+    updateCategory,
+    deleteCategory,
 }
