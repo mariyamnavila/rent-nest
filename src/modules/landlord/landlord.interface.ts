@@ -7,3 +7,5 @@ export interface ICreatePropertyPayload {
     images: string[];
     categoryId: string;
 }
+
+export type TUpdateProperty = Partial<ICreatePropertyPayload>

@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { ICreatePropertyPayload } from "./landlord.interface";
+import { ICreatePropertyPayload, TUpdateProperty } from "./landlord.interface";
 
 const createProperty = async (payload: ICreatePropertyPayload, landlordId: string) => {
     const { categoryId } = payload;
@@ -28,6 +28,48 @@ const createProperty = async (payload: ICreatePropertyPayload, landlordId: strin
     return property;
 }
 
+const updateProperty = async (
+    propertyId: string,
+    landlordId: string,
+    payload: TUpdateProperty
+) => {
+    const property = await prisma.property.findUniqueOrThrow({
+        where: {
+            id: propertyId,
+        },
+    });
+
+    if (property.landlordId !== landlordId) {
+        throw new Error("You do not have permission to update this property.");
+    }
+
+    if (payload.categoryId) {
+        await prisma.category.findUniqueOrThrow({
+            where: {
+                id: payload.categoryId,
+            },
+        });
+    }
+
+    const updatedProperty = await prisma.property.update({
+        where: {
+            id: propertyId,
+        },
+        data: payload,
+        include: {
+            category: true,
+            landlord: {
+                omit: {
+                    password: true,
+                },
+            },
+        },
+    });
+
+    return updatedProperty;
+}
+
 export const landlordService = {
     createProperty,
+    updateProperty,
 }
