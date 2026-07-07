@@ -7,6 +7,7 @@ import { adminRouter } from "./modules/admin/admin.route";
 import { categoryRouter } from "./modules/category/category.route";
 import { notFound } from "./middleware/notFound";
 import { globalErrorHandler } from "./middleware/globalErrorHandler";
+import { landlordRouter } from "./modules/landlord/landlord.route";
 
 const app: Application = express();
 
@@ -26,6 +27,7 @@ app.get("/", async (req: Request, res: Response) => {
 app.use("/api/auth", authRouter)
 app.use("/api/admin", adminRouter)
 app.use("/api/categories", categoryRouter)
+app.use("/api/landlord", landlordRouter)
 
 app.use(notFound)
 app.use(globalErrorHandler)
