@@ -22,6 +22,20 @@ const createCheckoutSession = catchAsync(async (req: Request, res: Response, nex
     })
 })
 
+const handleWebhook = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const signature = req.headers["stripe-signature"];
+    const rawBody = req.body;
+
+    if (!signature) {
+        throw new Error("Missing stripe-signature header.");
+    }
+
+    const result = await paymentService.handleWebhook(rawBody, signature as string);
+
+    res.status(httpStatus.OK).json(result);
+})
+
 export const paymentController = {
     createCheckoutSession,
+    handleWebhook,
 }
