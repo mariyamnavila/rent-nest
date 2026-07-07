@@ -1,9 +1,10 @@
 import { prisma } from "../../lib/prisma";
-import { ICreatePropertyPayload, TUpdateProperty } from "./landlord.interface";
+import { ICreatePropertyPayload } from "./landlord.interface";
 
 const createProperty = async (payload: ICreatePropertyPayload, landlordId: string) => {
     const { categoryId } = payload;
 
+    // Verify category exists
     await prisma.category.findUniqueOrThrow({
         where: {
             id: categoryId,
@@ -31,7 +32,7 @@ const createProperty = async (payload: ICreatePropertyPayload, landlordId: strin
 const updateProperty = async (
     propertyId: string,
     landlordId: string,
-    payload: TUpdateProperty
+    payload: Partial<ICreatePropertyPayload>
 ) => {
     const property = await prisma.property.findUniqueOrThrow({
         where: {
@@ -44,6 +45,7 @@ const updateProperty = async (
     }
 
     if (payload.categoryId) {
+        // Verify category exists
         await prisma.category.findUniqueOrThrow({
             where: {
                 id: payload.categoryId,
@@ -69,7 +71,28 @@ const updateProperty = async (
     return updatedProperty;
 }
 
+const deleteProperty = async (propertyId: string, landlordId: string) => {
+    const property = await prisma.property.findUniqueOrThrow({
+        where: {
+            id: propertyId,
+        },
+    });
+
+    if (property.landlordId !== landlordId) {
+        throw new Error("You do not have permission to delete this property.");
+    }
+
+    const deletedProperty = await prisma.property.delete({
+        where: {
+            id: propertyId,
+        },
+    });
+
+    return deletedProperty;
+}
+
 export const landlordService = {
     createProperty,
     updateProperty,
+    deleteProperty,
 }
