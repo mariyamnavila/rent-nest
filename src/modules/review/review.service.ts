@@ -15,7 +15,8 @@ const createReview = async (payload: ICreateReviewPayload, tenantId: string) => 
         },
     });
 
-    const completedRental = await prisma.rentalRequest.findFirst({
+    // Count total completed rental requests for this property by this tenant
+    const completedRentalsCount = await prisma.rentalRequest.count({
         where: {
             propertyId,
             tenantId,
@@ -23,8 +24,20 @@ const createReview = async (payload: ICreateReviewPayload, tenantId: string) => 
         },
     });
 
-    if (!completedRental) {
+    if (completedRentalsCount === 0) {
         throw new Error("You can only review properties where you have a completed rental request.");
+    }
+
+    // Count total reviews submitted for this property by this tenant
+    const reviewsCount = await prisma.review.count({
+        where: {
+            propertyId,
+            tenantId,
+        },
+    });
+
+    if (reviewsCount >= completedRentalsCount) {
+        throw new Error("You have already submitted reviews for all your completed stays of this property.");
     }
 
     const review = await prisma.review.create({
