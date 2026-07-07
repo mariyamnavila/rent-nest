@@ -201,6 +201,46 @@ const updatePropertyAvailability = async (
     return updatedProperty;
 }
 
+const completeRentalRequest = async (requestId: string, landlordId: string) => {
+    const rentalRequest = await prisma.rentalRequest.findUniqueOrThrow({
+        where: {
+            id: requestId,
+        },
+        include: {
+            property: true,
+        },
+    });
+
+    if (rentalRequest.property.landlordId !== landlordId) {
+        throw new Error("You do not have permission to complete this rental request.");
+    }
+
+    if (rentalRequest.status !== RequestStatus.ACTIVE) {
+        throw new Error("Only active rental requests can be marked as completed.");
+    }
+
+    await prisma.$transaction([
+        prisma.rentalRequest.update({
+            where: {
+                id: requestId,
+            },
+            data: {
+                status: RequestStatus.COMPLETED,
+            },
+        }),
+        prisma.property.update({
+            where: {
+                id: rentalRequest.propertyId,
+            },
+            data: {
+                isAvailable: true,
+            },
+        }),
+    ]);
+
+    return { message: "Rental request marked as completed and property is now available." };
+}
+
 export const landlordService = {
     createProperty,
     updateProperty,
@@ -208,4 +248,5 @@ export const landlordService = {
     getLandlordRentalRequests,
     updateRentalRequestStatus,
     updatePropertyAvailability,
+    completeRentalRequest,
 }

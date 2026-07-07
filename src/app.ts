@@ -9,6 +9,7 @@ import { categoryRouter } from "./modules/category/category.route";
 import { propertyRouter } from "./modules/property/property.route";
 import { rentalRouter } from "./modules/rental/rental.route";
 import { paymentRouter } from "./modules/payment/payment.route";
+import { reviewRouter } from "./modules/review/review.route";
 import { notFound } from "./middleware/notFound";
 import { globalErrorHandler } from "./middleware/globalErrorHandler";
 
@@ -36,6 +37,7 @@ app.use("/api/categories", categoryRouter)
 app.use("/api/properties", propertyRouter)
 app.use("/api/rentals", rentalRouter)
 app.use("/api/payments", paymentRouter)
+app.use("/api/reviews", reviewRouter)
 
 app.use(notFound)
 app.use(globalErrorHandler)
