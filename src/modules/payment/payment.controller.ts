@@ -1,0 +1,27 @@
+import { NextFunction, Request, Response } from "express";
+import { catchAsync } from "../../utils/catchAsync";
+import { paymentService } from "./payment.service";
+import sendResponse from "../../utils/sendResponse";
+import httpStatus from "http-status";
+
+const createCheckoutSession = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const tenantId = req.user?.id;
+    const { rentalRequestId } = req.body;
+
+    if (!rentalRequestId) {
+        throw new Error("rentalRequestId is required.");
+    }
+
+    const result = await paymentService.createCheckoutSession(rentalRequestId as string, tenantId as string);
+
+    sendResponse(res, {
+        success: true,
+        statusCode: httpStatus.OK,
+        message: "Stripe checkout session created successfully",
+        data: result
+    })
+})
+
+export const paymentController = {
+    createCheckoutSession,
+}
