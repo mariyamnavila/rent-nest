@@ -145,7 +145,76 @@ const handleWebhook = async (rawBody: string | Buffer, signature: string) => {
     return { received: true };
 }
 
+const getUserPaymentHistory = async (userId: string, role: string) => {
+    const andConditions: any[] = [];
+
+    if (role === "TENANT") {
+        andConditions.push({ tenantId: userId });
+    } else if (role === "LANDLORD") {
+        andConditions.push({
+            rentalRequest: {
+                property: {
+                    landlordId: userId,
+                },
+            },
+        });
+    }
+
+    const payments = await prisma.payment.findMany({
+        where: {
+            AND: andConditions,
+        },
+        include: {
+            rentalRequest: {
+                include: {
+                    property: true,
+                },
+            },
+            tenant: {
+                omit: {
+                    password: true,
+                },
+            },
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+    });
+
+    return payments;
+}
+
+const getPaymentDetails = async (id: string, userId: string, role: string) => {
+    const payment = await prisma.payment.findUniqueOrThrow({
+        where: {
+            id,
+        },
+        include: {
+            rentalRequest: {
+                include: {
+                    property: true,
+                },
+            },
+            tenant: {
+                omit: {
+                    password: true,
+                },
+            },
+        },
+    });
+
+    if (role === "TENANT" && payment.tenantId !== userId) {
+        throw new Error("You do not have permission to view this payment.");
+    } else if (role === "LANDLORD" && payment.rentalRequest.property.landlordId !== userId) {
+        throw new Error("You do not have permission to view this payment.");
+    }
+
+    return payment;
+}
+
 export const paymentService = {
     createCheckoutSession,
     handleWebhook,
+    getUserPaymentHistory,
+    getPaymentDetails,
 }
